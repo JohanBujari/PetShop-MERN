@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
+import { useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
-import { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
-const Form = () => {
-  const [inputs, setInputs] = useState({
+
+const Update = () => {
+  const [petsUpdated, setPetsUpdated] = useState({
     name: " ",
     petType: " ",
     description: " ",
@@ -13,41 +13,48 @@ const Form = () => {
   });
   const [backEndErrors, setbackEndErrors] = useState(null);
   const navigate = useNavigate();
+  const { id } = useParams();
+
   const onChangeHandler = (e) => {
-    setInputs({
-      ...inputs,
+    setPetsUpdated({
+      ...petsUpdated,
       [e.target.name]: e.target.value,
     });
   };
-  const onSubmitHandler = (e) => {
+  useEffect(() => {
+    axios
+      .get(`http://localhost:8000/api/getPet/${id}`)
+      .then((res) => {
+        console.log(res);
+        setPetsUpdated(res.data.onePet);
+      })
+      .catch((err) => console.log(err));
+  }, []);
+
+  const submitHandler = (e) => {
     e.preventDefault();
     axios
-      .post("http://localhost:8000/api/addPet", {
-        ...inputs,
+      .put(`http://localhost:8000/api/editPet/${id}`, {
+        ...petsUpdated,
       })
       .then((res) => {
         console.log(res);
-        navigate("/");
       })
       .catch((err) => {
         console.log(err);
-        if (err.response.data.err.code === 11000) {
+        if (err.response.data.err)
           setbackEndErrors(err.response.data.err.errors);
-        }
-        if (err.response.data.err) {
-          setbackEndErrors(err.response.data.err.errors);
-        }
       });
+    navigate("/");
   };
   return (
     <div>
       <div style={{ textAlign: "left" }}>
         <h1>Pet Shelter</h1>
-        <p>Know a pet needing a home?</p>
+        <p>Edit {petsUpdated.name}</p>
       </div>
-
       <form
-        onSubmit={onSubmitHandler}
+        onSubmit={submitHandler}
         style={{
           display: "flex",
           flexDirection: "row",
@@ -60,31 +67,26 @@ const Form = () => {
       >
         <div style={{ display: "flex", flexDirection: "column" }}>
           <label style={{ textAlign: "left" }}>Pet Name:</label> <br></br>
-          <input name="name" value={inputs.name} onChange={onChangeHandler} />
+          <input
+            name="name"
+            value={petsUpdated.name}
+            onChange={onChangeHandler}
+          />
           <br></br>
-          {backEndErrors && backEndErrors.name && (
-            <p style={{ color: "red" }}>{backEndErrors.name.message}</p>
-          )}
           <label style={{ textAlign: "left" }}>Pet Type:</label> <br></br>
           <input
             name="petType"
-            value={inputs.petType}
+            value={petsUpdated.petType}
             onChange={onChangeHandler}
           />
-          {backEndErrors && backEndErrors.petType && (
-            <p style={{ color: "red" }}>{backEndErrors.petType.message}</p>
-          )}
           <br></br>
           <label style={{ textAlign: "left" }}>Pet Description:</label>{" "}
           <br></br>
           <input
             name="description"
-            value={inputs.description}
+            value={petsUpdated.description}
             onChange={onChangeHandler}
           />
-          {backEndErrors && backEndErrors.description && (
-            <p style={{ color: "red" }}>{backEndErrors.description.message}</p>
-          )}{" "}
           <br></br>
           <button
             style={{
@@ -93,7 +95,7 @@ const Form = () => {
               boxShadow: "2px 2px black",
             }}
           >
-            Add Pet
+            Edit Pet
           </button>
         </div>
         <div style={{ display: "flex", flexDirection: "column" }}>
@@ -101,19 +103,19 @@ const Form = () => {
           <label style={{ textAlign: "left" }}>Skill 1:</label> <br></br>
           <input
             name="skill1"
-            value={inputs.skill1}
+            value={petsUpdated.skill1}
             onChange={onChangeHandler}
           />
           <label style={{ textAlign: "left" }}>Skill 2:</label> <br></br>
           <input
             name="skill2"
-            value={inputs.skill2}
+            value={petsUpdated.skill2}
             onChange={onChangeHandler}
           />
           <label style={{ textAlign: "left" }}>Skill 3:</label> <br></br>
           <input
             name="skill3"
-            value={inputs.skill3}
+            value={petsUpdated.skill3}
             onChange={onChangeHandler}
           />{" "}
           <br></br>
@@ -123,4 +125,4 @@ const Form = () => {
   );
 };
 
-export default Form;
+export default Update;
